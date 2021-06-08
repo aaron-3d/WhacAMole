@@ -8,7 +8,7 @@ public class GameController : MonoBehaviour
 {    
     public static GameController instance;
     public GameObject mainMenu, inGameUI,endScreen,recordPanel;
-
+    public GameObject noRecordPanel;
     public Transform molesParent;
     private MoleBehaviour[] moles;
 
@@ -18,23 +18,30 @@ public class GameController : MonoBehaviour
     public float timePlayed;
     public float tiempoRestante;
 
-    int points = 0;
-    int clicks = 0;
-    int failedClicks = 0;
-    int score = 0;
-    int record = 0;
+    public int points = 0;
+    public float clicks = 0;
+    public float failedClicks = 0;
+    public float topoClicks = 0;
+    public int score = 0;
+    public int record = 0;
 
-   
+    float recordActual;
+
+    float porcentajeClicks;
 
     public TMP_InputField nameField;
     string playerName;
 
+    bool isRecord = false;
+
     public TextMeshProUGUI infoGame;
     public TextMeshProUGUI pointsText;
     public TextMeshProUGUI timerText;
+    public TextMeshProUGUI recordText;
+    public TextMeshProUGUI noRecordtext;
 
     void Awake()
-    {        
+    {
         if (GameController.instance == null)
         {
             ConfigureInstance();
@@ -43,7 +50,6 @@ public class GameController : MonoBehaviour
         {
             Destroy(this);
         }
-
     }
 
     void ConfigureInstance()
@@ -57,8 +63,8 @@ public class GameController : MonoBehaviour
 
         //Inicia los puntos
         points = 0;
-        clicks = 0;
-        failedClicks = 0;
+        clicks = -1;
+        failedClicks = -1;
 
         //Activa la UI inicial
         inGameUI.SetActive(false);
@@ -70,23 +76,29 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        if (score > record)
+        if (score > record)   //Actualiza el record si la puntuación de la partida es mayor.
         {
             record = score;
         }
 
         pointsText.text = "Puntos: " + score;    
         timerText.text = ("Tiempo: " + Mathf.Floor(tiempoRestante));
+        noRecordtext.text = "Record actual por " + playerName + " con " + record + " puntos.";
+        
+    
+        
 
         if (playing == true)
         {
             timePlayed += Time.deltaTime;
             tiempoRestante = gameDuration - timePlayed;
 
+            failedClicks = clicks - topoClicks;  //Calcula los clicks fallados en función de los clicks totales y los clicks a topos o powerUps.
+            
+
             if (timePlayed >= gameDuration)
             {
-
+                
                 ShowEndScreen();
                 playing = false;
                 for (int i = 0; i < moles.Length; i++)
@@ -106,25 +118,25 @@ public class GameController : MonoBehaviour
             }
             
         }
+        porcentajeClicks = topoClicks / clicks * 100;  //Calcula el porcentaje de clicks acertados operando los clicks a topos o powerUps entre los totales y multiplicandolo por 100.
     }
 
 
     void ShowEndScreen()
     {
         endScreen.SetActive(true);
-        infoGame.text = " Total points : " + score + "\n Record: " + record + "\n 10" + "% good shots \n" + "999" + " bad shots";
+        infoGame.text =
+            " Total points : " + score
+            + "\n Record: " + record + " " + playerName
+            + "\n" + Mathf.Floor(porcentajeClicks) + "% de acierto." 
+            + "\n" + failedClicks +" fallos.";
 
-
-
-        bool isRecord = false;
-
-        if (score > record)
-        {
-            isRecord = true;
-        }
-        //si hay nuevo record mostrar el panel recordPanel
-        recordPanel.SetActive(isRecord);
+        GetRecord();
+        CheckScore();
     }
+
+        //si hay nuevo record mostrar el panel recordPanel
+
 
     /// <summary>
     /// Function called from End Screen when players hits Retry button
@@ -139,14 +151,23 @@ public class GameController : MonoBehaviour
 
         //Reinicia información del juego
         ResetGame();
+        SetRecord();
         //Cambia las pantallas
         inGameUI.SetActive(true);
         mainMenu.SetActive(false);
         endScreen.SetActive(false);
+        recordPanel.SetActive(false);
+        noRecordPanel.SetActive(false);
+
         score = 0;
 
         //Activa juego
         playing = true;
+
+        if (nameField.text == "")
+        {
+            playerName = "Aarón";
+        }
 
         //Reinicia moles
         for (int i = 0; i < moles.Length; i++)
@@ -164,23 +185,31 @@ public class GameController : MonoBehaviour
         {
             moles[i].StopMole();
         }
-
+        gameDuration = 60f;
         timePlayed = 0.0f;
         points = 0;
-        clicks = 0;
-        failedClicks = 0;
+        clicks = -1f;
+        failedClicks = -1f;
+        porcentajeClicks = 0f;
+        topoClicks = 0f;
+
+        if (nameField.text == "")
+        {
+            playerName = "Aarón";
+        }
     }
 
     public void EnterMainScreen()
     {
-        //Reinicia información del juego
+        playerName = "Aarón";
+        //Reinicia información del juego+
+        SetRecord();
         ResetGame();
         //Cambia las pantallas
         inGameUI.SetActive(false);
         mainMenu.SetActive(true);
         endScreen.SetActive(false);
         recordPanel.SetActive(false);
-
     }
 
     /// <summary>
@@ -190,7 +219,11 @@ public class GameController : MonoBehaviour
     {
         if ((Input.touchCount >= 1 && Input.GetTouch(0).phase == TouchPhase.Ended) || (Input.GetMouseButtonUp(0)))
         {
-          
+            if (playing == true)
+            {
+                clicks++; //Añade 1 a clicks cada vez que se clica durante la partida.
+            }
+
             Vector3 pos = Input.mousePosition;
             if (Application.platform == RuntimePlatform.Android)
             {
@@ -201,13 +234,26 @@ public class GameController : MonoBehaviour
             RaycastHit hitInfo;
             if (Physics.Raycast(rayo, out hitInfo))
             {
+                //Debug.Log("Porcentaje de clicks: " + porcentajeClicks);
+
                 if (hitInfo.collider.tag.Equals("Mole"))
                 {
                     MoleBehaviour mole = hitInfo.collider.GetComponent<MoleBehaviour>();
                     if (mole != null)
                     {
                         mole.OnHitMole();
-                        score += 100;
+                        score += 100;    //Suma 100 puntos y añade 1 al contador de clicks a topos o powerUps.
+                        topoClicks++;
+                    }
+                }
+               else if (hitInfo.collider.tag.Equals("PowerUp"))
+                {
+                    MoleBehaviour mole = hitInfo.collider.GetComponent<MoleBehaviour>();
+                    if (mole != null)
+                    {
+                        //mole.OnHitMole();
+                        //score += 100;
+                        topoClicks++;
                     }
                 }
             }
@@ -224,7 +270,9 @@ public class GameController : MonoBehaviour
             moles[i].ResetMole(moles[i].initTimeMin, moles[i].initTimeMax);
         }
         playing = true;
-        Debug.Log("El record es: " + record);
+
+        SetRecord();
+        Debug.Log("El record es: " + record);     
     }
 
     /// <summary>
@@ -235,4 +283,42 @@ public class GameController : MonoBehaviour
     
     
     }
+
+    public void SetRecord()
+    {
+        if (score > PlayerPrefs.GetInt("highScore", record))
+        {           
+            PlayerPrefs.SetInt("highScore", score);
+            PlayerPrefs.SetString("playerName", playerName);
+            PlayerPrefs.Save();
+            recordText.text = playerName + record.ToString();
+        }      
+    }
+    public void GetRecord()
+    {
+        if (score > PlayerPrefs.GetInt("highScore", record))
+        {
+            PlayerPrefs.SetString("playerName", playerName);
+        }
+    }
+
+    public void CheckScore()
+    {
+    if (score >= record) // Cambia isRecord a true si la puntuación es mayor al record.
+        {
+            isRecord = true;
+
+            if (isRecord == true)
+            {
+                recordPanel.SetActive(isRecord);
+            }
+
+        }
+
+        else
+        {
+            noRecordPanel.SetActive(true);
+        }
+    }
+
 }
