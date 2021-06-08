@@ -12,6 +12,7 @@ public class MoleBehaviour : MonoBehaviour
     private bool moleIsRunning = true;
 
     public float molePoints = 0;
+
     public float tiempoRestante = 0f;
     public float tiempoRestanteTimer = 0f;
 
@@ -37,7 +38,7 @@ public class MoleBehaviour : MonoBehaviour
                 isShown = true;
 
                 timeToStartMoving = Random.Range(3.5f, 7.8f);
-                Debug.Log(timeToStartMoving);
+                //Debug.Log(timeToStartMoving);
                 tiempoRestante = tiempoRestanteTimer - timeToStartMoving;
             }
             else if (timeToStartMoving <= 0.0f && isShown == true)

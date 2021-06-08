@@ -5,7 +5,7 @@ using UnityEngine;
 using TMPro;
 
 public class GameController : MonoBehaviour
-{
+{    
     public static GameController instance;
     public GameObject mainMenu, inGameUI,endScreen,recordPanel;
 
@@ -22,6 +22,9 @@ public class GameController : MonoBehaviour
     int clicks = 0;
     int failedClicks = 0;
     int score = 0;
+    int record = 0;
+
+   
 
     public TMP_InputField nameField;
     string playerName;
@@ -31,7 +34,7 @@ public class GameController : MonoBehaviour
     public TextMeshProUGUI timerText;
 
     void Awake()
-    {
+    {        
         if (GameController.instance == null)
         {
             ConfigureInstance();
@@ -67,7 +70,13 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        pointsText.text = "Puntos: " + score;       
+
+        if (score > record)
+        {
+            record = score;
+        }
+
+        pointsText.text = "Puntos: " + score;    
         timerText.text = ("Tiempo: " + Mathf.Floor(tiempoRestante));
 
         if (playing == true)
@@ -85,7 +94,11 @@ public class GameController : MonoBehaviour
                     moles[i].StopMole();
                 }
 
-                
+                if (tiempoRestante < 0)
+                {
+                    tiempoRestante = 0;
+                    gameDuration = 0;
+                }
             }
             else
             {
@@ -99,9 +112,16 @@ public class GameController : MonoBehaviour
     void ShowEndScreen()
     {
         endScreen.SetActive(true);
-        infoGame.text = " Total points : " + "000" + "\n Record: " + "100" + "\n 10" + "% good shots \n" + "999" + " bad shots";
+        infoGame.text = " Total points : " + score + "\n Record: " + record + "\n 10" + "% good shots \n" + "999" + " bad shots";
+
+
 
         bool isRecord = false;
+
+        if (score > record)
+        {
+            isRecord = true;
+        }
         //si hay nuevo record mostrar el panel recordPanel
         recordPanel.SetActive(isRecord);
     }
@@ -123,6 +143,8 @@ public class GameController : MonoBehaviour
         inGameUI.SetActive(true);
         mainMenu.SetActive(false);
         endScreen.SetActive(false);
+        score = 0;
+
         //Activa juego
         playing = true;
 
@@ -185,7 +207,7 @@ public class GameController : MonoBehaviour
                     if (mole != null)
                     {
                         mole.OnHitMole();
-                        score += 25;
+                        score += 100;
                     }
                 }
             }
@@ -202,6 +224,7 @@ public class GameController : MonoBehaviour
             moles[i].ResetMole(moles[i].initTimeMin, moles[i].initTimeMax);
         }
         playing = true;
+        Debug.Log("El record es: " + record);
     }
 
     /// <summary>
