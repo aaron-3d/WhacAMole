@@ -88,7 +88,7 @@ public class GameController : MonoBehaviour
     
         
 
-        if (playing == true)
+        if (playing == true) //Desarrolla el juego si este está en play.
         {
             timePlayed += Time.deltaTime;
             tiempoRestante = gameDuration - timePlayed;
@@ -96,7 +96,7 @@ public class GameController : MonoBehaviour
             failedClicks = clicks - topoClicks;  //Calcula los clicks fallados en función de los clicks totales y los clicks a topos o powerUps.
             
 
-            if (timePlayed >= gameDuration)
+            if (timePlayed >= gameDuration) //Permite jugar hasta que se acabe el tiempo.
             {
                 
                 ShowEndScreen();
@@ -164,7 +164,7 @@ public class GameController : MonoBehaviour
         //Activa juego
         playing = true;
 
-        if (nameField.text == "")
+        if (nameField.text == "")  //Establece el nombre Aarón como predeterminado si no se escribe nada en el name field.
         {
             playerName = "Aarón";
         }
@@ -179,7 +179,7 @@ public class GameController : MonoBehaviour
     /// <summary>
     /// Restarts all info game
     /// </summary>
-    void ResetGame()
+    void ResetGame()  //Función para reiniciar el juego, establece los valores a 
     {
         for (int i = 0; i < moles.Length; i++)
         {
@@ -192,14 +192,9 @@ public class GameController : MonoBehaviour
         failedClicks = -1f;
         porcentajeClicks = 0f;
         topoClicks = 0f;
-
-        if (nameField.text == "")
-        {
-            playerName = "Aarón";
-        }
     }
 
-    public void EnterMainScreen()
+    public void EnterMainScreen() //Función para volver al menú principal.
     {
         playerName = "Aarón";
         //Reinicia información del juego+
@@ -215,7 +210,7 @@ public class GameController : MonoBehaviour
     /// <summary>
     /// Used to check if players hits or not the moles/powerups
     /// </summary>
-    public void CheckClicks()
+    public void CheckClicks()  //Función para reconocer los touchs o clicks, detectar topos o powerups y que lleven a cabo su función correspondiente.
     {
         if ((Input.touchCount >= 1 && Input.GetTouch(0).phase == TouchPhase.Ended) || (Input.GetMouseButtonUp(0)))
         {
@@ -242,8 +237,8 @@ public class GameController : MonoBehaviour
                     if (mole != null)
                     {
                         mole.OnHitMole();
-                        score += 100;    //Suma 100 puntos y añade 1 al contador de clicks a topos o powerUps.
-                        topoClicks++;
+                        score += 100;    //Suma 100 puntos. 
+                        topoClicks++;    //Añade 1 al contador de clicks a topos o powerUps.
                     }
                 }
                else if (hitInfo.collider.tag.Equals("PowerUp"))
@@ -251,9 +246,8 @@ public class GameController : MonoBehaviour
                     MoleBehaviour mole = hitInfo.collider.GetComponent<MoleBehaviour>();
                     if (mole != null)
                     {
-                        //mole.OnHitMole();
-                        //score += 100;
-                        topoClicks++;
+                        //función de los powerUps.    
+                        topoClicks++;    //Añade 1 al contador de clicks a topos o powerUps.
                     }
                 }
             }
@@ -275,16 +269,7 @@ public class GameController : MonoBehaviour
         Debug.Log("El record es: " + record);     
     }
 
-    /// <summary>
-    /// Funcion para entrar en pausa, pone playing en false y muestra la pantalla de pausa.
-    /// </summary>
-    public void EnterOnPause()
-    { 
-    
-    
-    }
-
-    public void SetRecord()
+    public void SetRecord() //Función de playerprefs para establecer en este caso el record de puntuación junto al nombre.
     {
         if (score > PlayerPrefs.GetInt("highScore", record))
         {           
@@ -294,7 +279,7 @@ public class GameController : MonoBehaviour
             recordText.text = playerName + record.ToString();
         }      
     }
-    public void GetRecord()
+    public void GetRecord() //Función de playerprefs para obtener el nombre y la puntuación del jugador con el record.
     {
         if (score > PlayerPrefs.GetInt("highScore", record))
         {
@@ -302,7 +287,7 @@ public class GameController : MonoBehaviour
         }
     }
 
-    public void CheckScore()
+    public void CheckScore()  //Función creada por problemas al usar el código de abajo. Al final el problema era solo que en el if ''score >=record'' me faltaba el ">".
     {
     if (score >= record) // Cambia isRecord a true si la puntuación es mayor al record.
         {
@@ -317,7 +302,7 @@ public class GameController : MonoBehaviour
 
         else
         {
-            noRecordPanel.SetActive(true);
+            noRecordPanel.SetActive(true); //Si la puntuación no es mayor, muestra el último record.
         }
     }
 
