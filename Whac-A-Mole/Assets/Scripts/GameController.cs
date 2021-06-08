@@ -16,15 +16,19 @@ public class GameController : MonoBehaviour
 
     public float gameDuration = 60f;
     public float timePlayed;
+    public float tiempoRestante;
 
     int points = 0;
     int clicks = 0;
     int failedClicks = 0;
+    int score = 0;
 
     public TMP_InputField nameField;
     string playerName;
 
     public TextMeshProUGUI infoGame;
+    public TextMeshProUGUI pointsText;
+    public TextMeshProUGUI timerText;
 
     void Awake()
     {
@@ -63,9 +67,13 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        pointsText.text = "Puntos: " + score;       
+        timerText.text = ("Tiempo: " + Mathf.Floor(tiempoRestante));
+
         if (playing == true)
         {
             timePlayed += Time.deltaTime;
+            tiempoRestante = gameDuration - timePlayed;
 
             if (timePlayed >= gameDuration)
             {
@@ -177,6 +185,7 @@ public class GameController : MonoBehaviour
                     if (mole != null)
                     {
                         mole.OnHitMole();
+                        score += 25;
                     }
                 }
             }

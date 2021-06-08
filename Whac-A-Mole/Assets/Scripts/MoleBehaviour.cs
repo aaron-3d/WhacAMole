@@ -11,12 +11,16 @@ public class MoleBehaviour : MonoBehaviour
     public float initTimeMax = 3.5f;
     private bool moleIsRunning = true;
 
+    public float molePoints = 0;
+    public float tiempoRestante = 0f;
+    public float tiempoRestanteTimer = 0f;
 
     // Start is called before the first frame update
     void Awake()
     {
         originalPosition = transform.position;
         ResetMole(initTimeMin, initTimeMax, true);
+        
     }
 
     // Update is called once per frame
@@ -25,6 +29,7 @@ public class MoleBehaviour : MonoBehaviour
         if (moleIsRunning)
         {
             timeToStartMoving -= Time.deltaTime;
+            tiempoRestanteTimer += Time.deltaTime;
             if (timeToStartMoving <= 0.0f && isShown == false)
             {
                 //transform.position = originalPosition;
@@ -32,10 +37,13 @@ public class MoleBehaviour : MonoBehaviour
                 isShown = true;
 
                 timeToStartMoving = Random.Range(3.5f, 7.8f);
+                Debug.Log(timeToStartMoving);
+                tiempoRestante = tiempoRestanteTimer - timeToStartMoving;
             }
             else if (timeToStartMoving <= 0.0f && isShown == true)
             {
                 ResetMole(3.5f, 7.8f);
+                tiempoRestanteTimer = 0f;
             }
         }
        
@@ -89,5 +97,9 @@ public class MoleBehaviour : MonoBehaviour
         transform.position = newPos;
     }
 
+    public void AddPoints()
+    {
+        molePoints += (timeToStartMoving/tiempoRestanteTimer) * 150;
+    }
 
 }
